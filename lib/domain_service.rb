@@ -1,5 +1,4 @@
 require 'pg'
-require 'liquid'
 require 'aws-sdk'
 require 'json'
 
@@ -50,7 +49,7 @@ class DomainService
 
   def create_dns
     response = route53.create_hosted_zone(hosted_zone_template)
-    update_dns_hosted_zone(response) unlesss response.hosted_zone.id?
+    update_dns_hosted_zone(response) unless response.hosted_zone.id?
     {
       response: response.hosted_zone.name
     }
