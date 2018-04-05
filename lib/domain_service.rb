@@ -49,7 +49,9 @@ class DomainService
 
   def create_dns
     response = route53.create_hosted_zone(hosted_zone_template)
-    update_dns_hosted_zone(response) unless response.hosted_zone.id?
+    # update_dns_hosted_zone(puts response.to_h.to_json) unless response.hosted_zone.id.nil?
+    update_dns_hosted_zone(JSON.parse(response.to_h.to_json)) unless response.hosted_zone.id.nil?
+
     {
       response: response.hosted_zone.name
     }
@@ -61,15 +63,20 @@ class DomainService
   end
 
   def dns_hosted_zone
-    @dns_hosted_zone ||= @pgconn.exec_params('select * from dns_hosted_zones where community_id = $1 and domain_name = $2', [community_id, domain_name])
+    @dns_hosted_zone ||= @pgconn.exec_params(%Q{
+      select *
+        from dns_hosted_zones
+      where community_id = $1
+      and domain_name = $2
+    }, [community_id, domain_name]).first
   end
 
-  def update_dns_hosted_zone(response_route)
+  def update_dns_hosted_zone(hosted_zone)
     @pgconn.exec_params(%Q{
       update dns_hosted_zones
         set response = $1
       where id = $2
-    }, [response, dns_hosted_zone.id])
+    }, [hosted_zone.to_json, dns_hosted_zone['id']])
   end
 
   def hosted_zone_template
@@ -77,10 +84,14 @@ class DomainService
       name: domain_name,
       caller_reference: "#{DateTime.now.strftime('%Q')}#{rand(0..999)}",
       hosted_zone_config: {
-        comment: dns_hosted_zone.comment,
+        comment: dns_hosted_zone['comment'],
         private_zone: false
       }
     }
+  end
+
+  def input_action
+    @input_action ||= @input['action']
   end
 
   def call_id
