@@ -43,23 +43,51 @@ class DomainService
     STDERR.puts("[DomainService]#{call_id} - Processing #{input_action}")
     case input_action
     when 'create_hosted_zone'
-      create_dns
+      if not verify_hosted_zone
+        create_dns
+      else
+        updated_dns(verify_hosted_zone)
+      end
     end
   end
 
   def create_dns
     response = route53.create_hosted_zone(hosted_zone_template)
-    # update_dns_hosted_zone(puts response.to_h.to_json) unless response.hosted_zone.id.nil?
     update_dns_hosted_zone(JSON.parse(response.to_h.to_json)) unless response.hosted_zone.id.nil?
 
     {
+      action: "created_dns",
       response: response.hosted_zone.name
+    }
+  end
+
+  def updated_dns(hosted_zone)
+    update_dns_hosted_zone(JSON.parse(hosted_zone.to_h.to_json))
+
+    {
+      action: "updated_dns",
+      response: hosted_zone.hosted_zone.name
     }
   end
 
   private
   def community
     @community ||= @pgconn.exec_params('select * from communities where id = $1', [community_id]).first
+  end
+
+  def verify_hosted_zone
+    dns_hosted_zone_id = @pgconn.exec_params(%Q{
+     select
+       response -> 'hosted_zone' ->> 'id' AS "hosted_zone_id"
+     from dns_hosted_zones
+     where id = $1;
+     }, [dns_hosted_zone['id']]).first
+
+    if dns_hosted_zone_id['hosted_zone_id'].nil?
+      false
+    else
+      response = route53.get_hosted_zone({ id: dns_hosted_zone_id['hosted_zone_id'] })
+    end
   end
 
   def dns_hosted_zone
@@ -74,7 +102,7 @@ class DomainService
   def update_dns_hosted_zone(hosted_zone)
     @pgconn.exec_params(%Q{
       update dns_hosted_zones
-        set response = $1
+        set response = $1, updated_at = now()
       where id = $2
     }, [hosted_zone.to_json, dns_hosted_zone['id']])
   end
