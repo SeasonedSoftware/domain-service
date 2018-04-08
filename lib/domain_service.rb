@@ -24,6 +24,7 @@ class DomainService
     raise 'missing AWS_REGION' if ENV['AWS_REGION'].nil?
     raise 'missing AWS_SECRET_ACCESS_KEY' if ENV['AWS_SECRET_ACCESS_KEY'].nil?
     raise 'missing AWS_ACCESS_KEY_ID' if ENV['AWS_ACCESS_KEY_ID'].nil?
+    raise 'missing AWS_ROUTE_IP' if ENV['AWS_ROUTE_IP'].nil?
 
     @pgconn = PG.connect(ENV['DATABASE_URL'])
     @context = context
@@ -74,12 +75,18 @@ class DomainService
   end
 
   def create_default_records
-    default_records_1 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], domain_name, 'A', values: ENV['AWS_ROUTE_IP'], comments: 'autocreated')
 
-    default_records_2 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: ENV['AWS_ROUTE_IP'], comments: 'autocreated')
+    default_records_1 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
-    route53.change_resource_record_sets(default_records_1)
-    route53.change_resource_record_sets(default_records_2)
+    default_records_2 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
+
+    route53.change_resource_record_sets(default_records_1.to_h)
+    route53.change_resource_record_sets(default_records_2.to_h)
+
+    {
+      action: "created_dns_with_default_records",
+      response: domain_name
+    }
   end
 
   private
