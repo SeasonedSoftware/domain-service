@@ -48,9 +48,11 @@ class DomainService
       if not verify_hosted_zone
         create_dns
         create_default_records
+        save_record_resources
       else
         updated_dns(verify_hosted_zone)
         create_default_records
+        save_record_resources
       end
     end
   end
@@ -75,7 +77,6 @@ class DomainService
   end
 
   def create_default_records
-
     default_records_1 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
     default_records_2 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
@@ -86,6 +87,23 @@ class DomainService
     {
       action: "created_dns_with_default_records",
       response: domain_name
+    }
+  end
+
+  def save_record_resources
+    @pgconn.prepare('insert_record', 'insert into public.dns_records(dns_hosted_zone_id, name, record_type, value, ttl, created_at, updated_at) values ($1, $2, $3, $4, $5, now(), now())')
+
+    list_resource_records.each do |record_set|
+      quant_records = @pgconn.exec_params('select * from public.dns_records where name = $1 and record_type = $2', [(record_set.name.gsub(/\.$/, '')), record_set.type])
+
+      if quant_records == 0
+        @pgconn.exec_prepared('insert_record', [dns_hosted_zone['id'], eval(%Q("#{record_set.name.gsub(/\.$/, '')}")), record_set.type, record_set.resource_records.map{|r| r.value}.join("\n"), record_set.ttl])
+      end
+    end
+
+    {
+      action: 'create dns completed',
+      response: 'coloque aqui algo que faca sentido'
     }
   end
 
@@ -160,6 +178,18 @@ class DomainService
     batch[:change_batch][:comment] = comments if comments
 
     batch
+  end
+
+  def list_resource_records
+    resource_records = []
+
+    response = route53.list_resource_record_sets({hosted_zone_id: dns_hosted_zone_id['hosted_zone_id']})
+    while (response['is_truncated'])
+      resource_records += (response['resource_record_sets'])
+      response = route53.list_resource_record_sets({hosted_zone_id: dns_hosted_zone_id['hosted_zone_id'], start_record_name: response['next_record_name']})
+    end
+    resource_records += (response['resource_record_sets'])
+    resource_records
   end
 
   def input_action
