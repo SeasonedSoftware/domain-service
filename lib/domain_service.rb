@@ -103,7 +103,7 @@ class DomainService
 
     {
       action: 'create dns completed',
-      response: 'coloque aqui algo que faca sentido'
+      response: dns_hosted_zone['domain_name']
     }
   end
 
