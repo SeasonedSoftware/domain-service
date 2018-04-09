@@ -25,6 +25,7 @@ class DomainService
     raise 'missing AWS_SECRET_ACCESS_KEY' if ENV['AWS_SECRET_ACCESS_KEY'].nil?
     raise 'missing AWS_ACCESS_KEY_ID' if ENV['AWS_ACCESS_KEY_ID'].nil?
     raise 'missing AWS_ROUTE_IP' if ENV['AWS_ROUTE_IP'].nil?
+    raise 'missing JWT_SECRET' if ENV['JWT_SECRET'].nil?
 
     @pgconn = PG.connect(ENV['DATABASE_URL'])
     @context = context
