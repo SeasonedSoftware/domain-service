@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "input": {
+        "id":"ID",
+        "domain":"domain.example.org",
+        "action":"create_hosted_zone",
+        "api_key": "jwt_token"
+      },
+      "output": {
+        "status": "status_code",
+        "response": "domain.example.org"
+      }
+    },
+    {
+      "input": {
+      },
+      "output": {
+        "status": "status_code",
+        "response": "other response"
+      }
+    }
+  ]
+}
