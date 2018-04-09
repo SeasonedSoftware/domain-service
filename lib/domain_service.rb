@@ -86,7 +86,7 @@ class DomainService
     route53.change_resource_record_sets(default_records_2.to_h)
 
     {
-      action: "created_dns_with_default_records",
+      status: "200",
       response: domain_name
     }
   end
@@ -103,8 +103,8 @@ class DomainService
     end
 
     {
-      action: 'create dns completed',
-      response: dns_hosted_zone['domain_name']
+      status: "200",
+      response: domain_name
     }
   end
 
