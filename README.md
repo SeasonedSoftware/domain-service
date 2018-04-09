@@ -40,7 +40,7 @@ fn deploy --app YOUR_APP --local
 
 calling the function via fn cli
 ```
-echo '{"id": "notification_id", "action": "deliver_notification", "api_key": "jwt_token_hs512_with_jwt_secret"}' | fn call YOU_APP /notification-service
+echo '{"id": "dns_hosted_zone_id", "action": "create_hosted_zone", "api_key": "jwt_token_hs512_with_jwt_secret"}' | fn call YOU_APP /domain-service
 ```
 
 
