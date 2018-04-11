@@ -5,7 +5,7 @@ This functions for (fnproject.io) receives a json via stdin with id of dns_hoste
 ## input format
 ```
 {
-  "id":"dns_hosted_zone_id",
+  "id":"community_id",
   "domain":"domain.example.org",
   "action":"create_hosted_zone",
   "api_key": "jwt_token_hs512_with_jwt_secret"
@@ -40,7 +40,7 @@ fn deploy --app YOUR_APP --local
 
 calling the function via fn cli
 ```
-echo '{"id": "dns_hosted_zone_id", "domain": "domain_name", "action": "create_hosted_zone", "api_key": "jwt_token_hs512_with_jwt_secret"}' | fn call YOU_APP /domain-service
+echo '{"id": "community_id", "domain": "domain_name", "action": "create_hosted_zone", "api_key": "jwt_token_hs512_with_jwt_secret"}' | fn call YOU_APP /domain-service
 ```
 
 

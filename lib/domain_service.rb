@@ -58,6 +58,7 @@ class DomainService
     end
   end
 
+  # create dns_hosted_zone in Route53
   def create_dns
     response = route53.create_hosted_zone(hosted_zone_template)
     update_dns_hosted_zone(JSON.parse(response.to_h.to_json)) unless response.hosted_zone.id.nil?
@@ -68,6 +69,7 @@ class DomainService
     }
   end
 
+  # update dns_hosted_zone in database
   def updated_dns(hosted_zone)
     update_dns_hosted_zone(JSON.parse(hosted_zone.to_h.to_json))
 
@@ -77,6 +79,7 @@ class DomainService
     }
   end
 
+  # created dns_records default after created hosted_zone
   def create_default_records
     default_records_1 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
