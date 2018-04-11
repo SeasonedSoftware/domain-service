@@ -46,7 +46,7 @@ class DomainService
 
     case input_action
     when 'create_hosted_zone'
-      if not verify_hosted_zone
+      if not verify_hosted_zone_aws
         create_dns
         create_default_records
         save_record_resources
@@ -100,7 +100,7 @@ class DomainService
     list_resource_records.each do |record_set|
       quant_records = @pgconn.exec_params('select * from public.dns_records where name = $1 and record_type = $2', [(record_set.name.gsub(/\.$/, '')), record_set.type])
 
-      if quant_records == 0
+      if quant_records.count == 0
         @pgconn.exec_prepared('insert_record', [dns_hosted_zone['id'], eval(%Q("#{record_set.name.gsub(/\.$/, '')}")), record_set.type, record_set.resource_records.map{|r| r.value}.join("\n"), record_set.ttl])
       end
     end
@@ -113,7 +113,7 @@ class DomainService
 
   private
 
-  def verify_hosted_zone
+  def verify_hosted_zone_aws
     if dns_hosted_zone_aws_id['hosted_zone_id'].nil?
       false
     else

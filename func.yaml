@@ -1,5 +1,5 @@
 name: domain-service
-version: 0.0.19
+version: 0.0.28
 runtime: ruby
 entrypoint: ruby func.rb
 memory: 128
