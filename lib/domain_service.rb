@@ -12,7 +12,7 @@ require 'json'
 #
 # input:
 # {
-#   'id': 'community_id',
+#   'id': 'dns_hosted_zone_id',
 #   'domain': 'domain_name',
 #   'action': 'create_hosted_zone'
 # }
@@ -81,9 +81,9 @@ class DomainService
 
   # created dns_records default after created hosted_zone
   def create_default_records
-    default_records_1 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
+    default_records_1 = default_records_template(dns_hosted_zone_aws_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
-    default_records_2 = default_records_template(dns_hosted_zone_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
+    default_records_2 = default_records_template(dns_hosted_zone_aws_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
     route53.change_resource_record_sets(default_records_1.to_h)
     route53.change_resource_record_sets(default_records_2.to_h)
@@ -112,34 +112,30 @@ class DomainService
   end
 
   private
-  def community
-    @community ||= @pgconn.exec_params('select * from communities where id = $1', [community_id]).first
-  end
 
   def verify_hosted_zone
-    if dns_hosted_zone_id['hosted_zone_id'].nil?
+    if dns_hosted_zone_aws_id['hosted_zone_id'].nil?
       false
     else
-      response = route53.get_hosted_zone({ id: dns_hosted_zone_id['hosted_zone_id'] })
+      response = route53.get_hosted_zone({ id: dns_hosted_zone_aws_id['hosted_zone_id'] })
     end
   end
 
-  def dns_hosted_zone_id
-    @dns_hosted_zone_id = @pgconn.exec_params(%Q{
+  def dns_hosted_zone_aws_id
+    @dns_hosted_zone_aws_id = @pgconn.exec_params(%Q{
      select
        response -> 'hosted_zone' ->> 'id' AS "hosted_zone_id"
      from dns_hosted_zones
      where id = $1;
-    }, [dns_hosted_zone['id']]).first
+    }, [dns_hosted_zone_id]).first
   end
 
   def dns_hosted_zone
     @dns_hosted_zone ||= @pgconn.exec_params(%Q{
       select *
         from dns_hosted_zones
-      where community_id = $1
-      and domain_name = $2
-    }, [community_id, domain_name]).first
+      where id = $1
+    }, [dns_hosted_zone_id]).first
   end
 
   def update_dns_hosted_zone(hosted_zone)
@@ -147,7 +143,7 @@ class DomainService
       update dns_hosted_zones
         set response = $1, updated_at = now()
       where id = $2
-    }, [hosted_zone.to_json, dns_hosted_zone['id']])
+    }, [hosted_zone.to_json, dns_hosted_zone_id])
   end
 
   def hosted_zone_template
@@ -187,10 +183,10 @@ class DomainService
   def list_resource_records
     resource_records = []
 
-    response = route53.list_resource_record_sets({hosted_zone_id: dns_hosted_zone_id['hosted_zone_id']})
+    response = route53.list_resource_record_sets({hosted_zone_id: dns_hosted_zone_aws_id['hosted_zone_id']})
     while (response['is_truncated'])
       resource_records += (response['resource_record_sets'])
-      response = route53.list_resource_record_sets({hosted_zone_id: dns_hosted_zone_id['hosted_zone_id'], start_record_name: response['next_record_name']})
+      response = route53.list_resource_record_sets({hosted_zone_id: dns_hosted_zone_aws_id['hosted_zone_id'], start_record_name: response['next_record_name']})
     end
     resource_records += (response['resource_record_sets'])
     resource_records
@@ -204,8 +200,8 @@ class DomainService
     @call_id ||= @context.call_id
   end
 
-  def community_id
-    @community_id ||= @input['id']
+  def dns_hosted_zone_id
+    @dns_hosted_zone_id ||= @input['id']
   end
 
   def domain_name
