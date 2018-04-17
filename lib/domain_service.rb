@@ -57,6 +57,9 @@ class DomainService
       end
     when 'create_dns_record'
       create_dns_records
+    when 'verify_custom_domain'
+      # call consul/traefk
+      verify_custom_domain
     end
   end
 
@@ -118,6 +121,10 @@ class DomainService
     record = default_records_template(xxx, dns_record['name'], dns_record['recorD_type'], values: dns_record['values'], comments: dns_record['comments'])
 
     route53.change_resource_record_sets(record.to_h)
+  end
+
+  def verify_custom_domain
+    puts "LOGGER COSTUM_DOMAIN MOBI_ID =>> #{input['id']} CUSTOM_DOMAIN =>> #{input['custom_domain']} POSTGRES_ACTION =>> #{input['pg_action']}"
   end
 
   private
