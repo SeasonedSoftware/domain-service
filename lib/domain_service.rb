@@ -55,6 +55,8 @@ class DomainService
         create_default_records
         save_record_resources
       end
+    when 'create_dns_record'
+      create_dns_records
     end
   end
 
@@ -81,9 +83,9 @@ class DomainService
 
   # created dns_records default after created hosted_zone
   def create_default_records
-    default_records_1 = default_records_template(dns_hosted_zone_aws_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
+    default_records_1 = records_template(dns_hosted_zone_aws_id['hosted_zone_id'], domain_name, 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
-    default_records_2 = default_records_template(dns_hosted_zone_aws_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
+    default_records_2 = records_template(dns_hosted_zone_aws_id['hosted_zone_id'], "*.#{domain_name}", 'A', values: [ENV['AWS_ROUTE_IP']], comments: 'autocreated')
 
     route53.change_resource_record_sets(default_records_1.to_h)
     route53.change_resource_record_sets(default_records_2.to_h)
@@ -93,6 +95,7 @@ class DomainService
       response: domain_name
     }
   end
+
 
   def save_record_resources
     @pgconn.prepare('insert_record', 'insert into public.dns_records(dns_hosted_zone_id, name, record_type, value, ttl, created_at, updated_at) values ($1, $2, $3, $4, $5, now(), now())')
@@ -111,7 +114,23 @@ class DomainService
     }
   end
 
+  def create_dns_recoord
+    record = default_records_template(xxx, dns_record['name'], dns_record['recorD_type'], values: dns_record['values'], comments: dns_record['comments'])
+
+    route53.change_resource_record_sets(record.to_h)
+  end
+
   private
+
+  def dns_record
+    if input_action = 'create_dns_record'
+      @dns_record ||= @pgconn.exec_params(%Q{
+        select *
+          from public.dns_records
+        where id = $1
+      }, [input['id']]).first
+    end
+  end
 
   def verify_hosted_zone_aws
     if dns_hosted_zone_aws_id['hosted_zone_id'].nil?
@@ -157,7 +176,7 @@ class DomainService
     }
   end
 
-  def default_records_template hosted_zone_id, domain_name, type, values: nil, comments: nil, action: 'UPSERT', ttl_seconds: 300# 3600
+  def records_template hosted_zone_id, domain_name, type, values: nil, comments: nil, action: 'UPSERT', ttl_seconds: 300# 3600
     batch = {
       change_batch: {
         changes: [
