@@ -44,6 +44,7 @@ class DomainService
   def run
     STDERR.puts("[DomainService]#{call_id} - Processing #{input_action}")
 
+
     case input_action
     when 'create_hosted_zone'
       if not verify_hosted_zone_aws
@@ -117,7 +118,7 @@ class DomainService
     }
   end
 
-  def create_dns_recoord
+  def create_dns_record
     record = default_records_template(xxx, dns_record['name'], dns_record['recorD_type'], values: dns_record['values'], comments: dns_record['comments'])
 
     route53.change_resource_record_sets(record.to_h)
