@@ -1,0 +1,20 @@
+pipeline:
+  staging-deploy:
+    image: nossas/fn-dispatcher:develop
+    environment:
+      - DOCKER_HOST=tcp://docker:2375
+      - FN_API_URL=https://fn.staging.bonde.org
+      - FN_REGISTRY=nossas
+      - FN_APP_NAME=domain
+    secrets: [ docker_username, docker_password ]
+    commands:
+      - docker --tls=false login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - fn deploy --app $FN_APP_NAME
+    when:
+      status: success
+      branch: [hotfix/*, release/*, feature/*, support/*, develop]
+services:
+  docker:
+    image: docker:dind
+    command: [ "--storage-driver=vfs", "--tls=false" ]
+    privileged: true
