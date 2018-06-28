@@ -30,6 +30,7 @@ class TraefikService < BaseService
   end
 
   def run
+    return if mobilization['traefik_host_rule'].nil?
     generate_public_backend unless have_default_public_backend?
 
     generate_mob_frontend
