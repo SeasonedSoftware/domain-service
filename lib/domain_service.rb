@@ -1,6 +1,7 @@
 require 'pg'
 require 'aws-sdk'
 require 'json'
+require './lib/base_service'
 
 # Create dns/domain via aws-skd [route53]
 #
@@ -18,18 +19,14 @@ require 'json'
 # }
 #
 
-class DomainService
+class DomainService < BaseService
   def initialize(context, input)
-    raise 'missing DATABASE_URL env' if ENV['DATABASE_URL'].nil?
     raise 'missing AWS_REGION' if ENV['AWS_REGION'].nil?
     raise 'missing AWS_SECRET_ACCESS_KEY' if ENV['AWS_SECRET_ACCESS_KEY'].nil?
     raise 'missing AWS_ACCESS_KEY_ID' if ENV['AWS_ACCESS_KEY_ID'].nil?
     raise 'missing AWS_ROUTE_IP' if ENV['AWS_ROUTE_IP'].nil?
     raise 'missing JWT_SECRET' if ENV['JWT_SECRET'].nil?
-
-    @pgconn = PG.connect(ENV['DATABASE_URL'])
-    @context = context
-    @input = input
+    super
   end
 
   def self.run!(context, input)
@@ -217,14 +214,6 @@ class DomainService
     end
     resource_records += (response['resource_record_sets'])
     resource_records
-  end
-
-  def input_action
-    @input_action ||= @input['action']
-  end
-
-  def call_id
-    @call_id ||= @context.call_id
   end
 
   def dns_hosted_zone_id
