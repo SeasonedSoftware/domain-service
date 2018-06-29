@@ -48,6 +48,7 @@ fn apps config s YOUR_APP AWS_ACCESS_KEY_ID aws_access_key_id
 fn apps config s YOUR_APP AWS_SECRET_ACCESS_KEY aws_secret_access_key
 fn apps config s YOUR_APP AWS_ROUTE_IP aws_route_ip
 fn apps config s YOUR_APP JWT_SECRET jwt_secret_key
+fn apps config s YOUR_APP DEFAULT_PUBLIC_BACKEND_URI http://backend.public
 fn apps config s YOUR_APP CONSUL_URI http://consul.host
 fn apps config s YOUR_APP CONSUL_ACL_TOKEN consulacltoken
 
