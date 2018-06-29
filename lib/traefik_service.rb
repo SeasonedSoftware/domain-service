@@ -74,7 +74,7 @@ class TraefikService < BaseService
   end
 
   def default_backend_weight_kv
-    ['traefik/backends/default_public_backend/servers/server1/weight', 1]
+    ['traefik/backends/default_public_backend/servers/server1/weight', '1']
   end
 
   def mobilization_id

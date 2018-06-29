@@ -23,7 +23,7 @@ RSpec.describe TraefikService do
     allow(Diplomat::Kv).to receive(:put).with('traefik/frontends/1234_public_frontend/routes/main/rule', 'Host: foo.bar.com').and_return(true)
 
     allow(Diplomat::Kv).to receive(:put).with('traefik/backends/default_public_backend/servers/server1/url', 'backend.url').and_return(true)
-    allow(Diplomat::Kv).to receive(:put).with('traefik/backends/default_public_backend/servers/server1/weight', 1).and_return(true)
+    allow(Diplomat::Kv).to receive(:put).with('traefik/backends/default_public_backend/servers/server1/weight', '1').and_return(true)
     allow(pgconn_mock).to receive(:exec_params).with(
       get_mob_sql,
       [1234]
@@ -61,7 +61,7 @@ RSpec.describe TraefikService do
       )
       expect(Diplomat::Kv).to receive(:put).with(
         'traefik/backends/default_public_backend/servers/server1/weight', 
-        1
+        '1'
       )
       subject.generate_public_backend
     end
@@ -89,7 +89,7 @@ RSpec.describe TraefikService do
         )
         expect(Diplomat::Kv).to_not receive(:put).with(
           'traefik/backends/default_public_backend/servers/server1/weight', 
-          1
+          '1'
         )
 
         subject.run
@@ -117,7 +117,7 @@ RSpec.describe TraefikService do
         )
         expect(Diplomat::Kv).to receive(:put).with(
           'traefik/backends/default_public_backend/servers/server1/weight', 
-          1
+          '1'
         )
 
         subject.run
