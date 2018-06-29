@@ -44,13 +44,13 @@ class TraefikService < BaseService
   end
 
   def generate_mob_frontend
-    Diplomat::Kv.put(*mob_frontend_backend_kv) &&
-      Diplomat::Kv.put(*mob_frontend_rule_kv)
+    Diplomat::Kv.put(*mob_frontend_backend_kv)
+    Diplomat::Kv.put(*mob_frontend_rule_kv)
   end
 
   def generate_public_backend
-    Diplomat::Kv.put(*default_backend_server_kv) &&
-      Diplomat::Kv.put(*default_backend_weight_kv)
+    Diplomat::Kv.put(*default_backend_server_kv)
+    Diplomat::Kv.put(*default_backend_weight_kv)
   end
 
   def have_default_public_backend?
