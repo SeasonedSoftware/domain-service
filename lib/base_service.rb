@@ -6,6 +6,10 @@ class BaseService
     @input = input
   end
 
+  def input
+    @input
+  end
+
   protected
 
   def input_action
