@@ -1,13 +1,11 @@
 require 'fdk'
 require 'json'
 require 'jwt'
-require './lib/domain_service'
+require './lib/actions_dispatcher'
 
 def run(context, input)
-  puts input.inspect
   if result = decode_token(input)
-    puts result.inspect
-    DomainService.run!(context, result[0])
+    ActionsDispatcher.run!(context, result[0])
   end
 # rescue Exception => e
 #   { error: "#{e.inspect}" }

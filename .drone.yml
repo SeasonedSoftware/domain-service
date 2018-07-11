@@ -1,0 +1,36 @@
+pipeline:
+  unit-tests:
+    image: alpine:3.5
+    commands:
+      - apk update
+      - apk upgrade
+      - apk --update add --virtual build_deps postgresql-dev libxml2-dev libxslt-dev imagemagick imagemagick-dev openssl libpq libffi-dev bash curl-dev libstdc++ tzdata bash ca-certificates build-base ruby-dev libc-dev linux-headers postgresql-client postgresql git
+      - apk --update add ruby ruby-io-console ruby-bundler ruby-irb ruby-bigdecimal ruby-json
+      - cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+      - echo "America/Sao_Paulo" > /etc/timezone
+      - export RSPEC_MODE=test
+      - sleep 5;
+      - bundle install
+      - bundle exec rspec spec
+    when:
+      event: [push, tag]
+
+  staging-deploy:
+    image: nossas/fn-dispatcher:develop
+    environment:
+      - DOCKER_HOST=tcp://docker:2375
+      - FN_REGISTRY=nossas
+      - FN_APP_NAME=domain
+      - FN_API_URL=https://fn.staging.bonde.org
+    secrets: [ docker_username, docker_password ]
+    commands:
+      - docker --tls=false login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - fn deploy --app $FN_APP_NAME 
+    when:
+      status: success
+      branch: [hotfix/*, release/*, feature/*, support/*, develop]
+services:
+  docker:
+    image: docker:dind
+    command: [ "--storage-driver=vfs", "--tls=false" ]
+    privileged: true

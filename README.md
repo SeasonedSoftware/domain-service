@@ -2,7 +2,12 @@
 
 This functions for (fnproject.io) receives a json via stdin with id of dns_hosted_zone and action then create a hosted_zone in aws (using route53).
 
-## input format
+## actions enabled:
+
+- create_hosted_zone
+- refresh_frontend
+
+## input format for create_hosted_zone action
 ```
 {
   "id":"community_id",
@@ -12,8 +17,17 @@ This functions for (fnproject.io) receives a json via stdin with id of dns_hoste
 }
 ```
 
+## input format for refresh_frontend
+```
+{
+  "id":"mobilization_id",
+  "action":"refresh_frontend",
+}
+```
 
-## output format
+
+
+## output format example
 ```
 {
   status: "200",
@@ -34,6 +48,9 @@ fn apps config s YOUR_APP AWS_ACCESS_KEY_ID aws_access_key_id
 fn apps config s YOUR_APP AWS_SECRET_ACCESS_KEY aws_secret_access_key
 fn apps config s YOUR_APP AWS_ROUTE_IP aws_route_ip
 fn apps config s YOUR_APP JWT_SECRET jwt_secret_key
+fn apps config s YOUR_APP DEFAULT_PUBLIC_BACKEND_URI http://backend.public
+fn apps config s YOUR_APP CONSUL_URI http://consul.host
+fn apps config s YOUR_APP CONSUL_ACL_TOKEN consulacltoken
 
 fn deploy --app YOUR_APP --local
 ```
