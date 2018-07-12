@@ -10,4 +10,5 @@ gem 'diplomat'
 group :test do
   gem 'pry'
   gem 'rspec'
+  gem 'simplecov'
 end
