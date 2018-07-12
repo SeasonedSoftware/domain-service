@@ -11,4 +11,5 @@ group :test do
   gem 'pry'
   gem 'rspec'
   gem 'simplecov'
+  gem 'rspec_junit_formatter'
 end
